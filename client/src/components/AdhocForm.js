@@ -5,6 +5,7 @@ import { useMsal } from "@azure/msal-react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { validatePhoneLength } from "../utils/phoneUtils";
+import duplicateIcon from "../images/duplicate.png";
 
 export default function AdhocForm({ isMobile, setActiveForm, visitorToEdit }) {
   const { accounts } = useMsal();
@@ -56,6 +57,7 @@ export default function AdhocForm({ isMobile, setActiveForm, visitorToEdit }) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [autofillEnabled, setAutofillEnabled] = useState({});
+  const [autofillStates, setAutofillStates] = useState({});
 
   // Update submittedBy when account changes
   useEffect(() => {
@@ -307,15 +309,94 @@ export default function AdhocForm({ isMobile, setActiveForm, visitorToEdit }) {
                   transition={{ duration: 0.3 }}
                   className="d-flex flex-column gap-2"
                 >
-                  <input
-                    className="form-control"
-                    placeholder="Host"
-                    required
-                    value={visitor.host}
-                    onChange={(e) =>
-                      handleChange(index, "host", e.target.value)
-                    }
-                  />
+                  {/* ✅ Host field */}
+                  <div className="d-flex gap-2">
+                    <input
+                      className="form-control"
+                      placeholder="Host"
+                      required
+                      value={visitor.host}
+                      onChange={(e) =>
+                        handleChange(index, "host", e.target.value)
+                      }
+                    />
+                    {!visitorToEdit && visitors.length > 1 && index > 0 && (
+                      <button
+                        className={`btn ${autofillStates[`${index}-host`] ? "btn-danger" : "btn-success"}`}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const isAutofilled = autofillStates[`${index}-host`];
+                          if (isAutofilled) {
+                            handleChange(index, "host", "");
+                          } else {
+                            handleChange(index, "host", visitors[0].host);
+                          }
+                          setAutofillStates({...autofillStates, [`${index}-host`]: !isAutofilled});
+                        }}
+                        title={autofillStates[`${index}-host`] ? "Clear" : "Copy from first visitor"}
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          padding: "0",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <img
+                          src={duplicateIcon}
+                          alt="Copy"
+                          style={{ width: "20px", height: "20px" }}
+                        />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="d-flex gap-2">
+                    <input
+                      className="form-control"
+                      placeholder="Company"
+                      required
+                      value={visitor.company}
+                      onChange={(e) =>
+                        handleChange(index, "company", e.target.value)
+                      }
+                    />
+                    {!visitorToEdit && visitors.length > 1 && index > 0 && (
+                      <button
+                        className={`btn ${autofillStates[`${index}-company`] ? "btn-danger" : "btn-success"}`}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const isAutofilled = autofillStates[`${index}-company`];
+                          if (isAutofilled) {
+                            handleChange(index, "company", "");
+                          } else {
+                            handleChange(index, "company", visitors[0].company);
+                          }
+                          setAutofillStates({...autofillStates, [`${index}-company`]: !isAutofilled});
+                        }}
+                        title={autofillStates[`${index}-company`] ? "Clear" : "Copy from first visitor"}
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          padding: "0",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <img
+                          src={duplicateIcon}
+                          alt="Copy"
+                          style={{ width: "20px", height: "20px" }}
+                        />
+                      </button>
+                    )}
+                  </div>
 
                   <input
                     className="form-control"
@@ -345,16 +426,6 @@ export default function AdhocForm({ isMobile, setActiveForm, visitorToEdit }) {
                     value={visitor.email}
                     onChange={(e) =>
                       handleChange(index, "email", e.target.value)
-                    }
-                  />
-
-                  <input
-                    className="form-control"
-                    placeholder="Company"
-                    required
-                    value={visitor.company}
-                    onChange={(e) =>
-                      handleChange(index, "company", e.target.value)
                     }
                   />
 
@@ -400,15 +471,49 @@ export default function AdhocForm({ isMobile, setActiveForm, visitorToEdit }) {
                     </p>
                   )}
 
-                  <input
-                    className="form-control"
-                    placeholder="Purpose of Visit"
-                    required
-                    value={visitor.purposeOfVisit}
-                    onChange={(e) =>
-                      handleChange(index, "purposeOfVisit", e.target.value)
-                    }
-                  />
+                  <div className="d-flex gap-2">
+                    <input
+                      className="form-control"
+                      placeholder="Purpose of Visit"
+                      required
+                      value={visitor.purposeOfVisit}
+                      onChange={(e) =>
+                        handleChange(index, "purposeOfVisit", e.target.value)
+                      }
+                    />
+                    {!visitorToEdit && visitors.length > 1 && index > 0 && (
+                      <button
+                        className={`btn ${autofillStates[`${index}-purpose`] ? "btn-danger" : "btn-success"}`}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const isAutofilled = autofillStates[`${index}-purpose`];
+                          if (isAutofilled) {
+                            handleChange(index, "purposeOfVisit", "");
+                          } else {
+                            handleChange(index, "purposeOfVisit", visitors[0].purposeOfVisit);
+                          }
+                          setAutofillStates({...autofillStates, [`${index}-purpose`]: !isAutofilled});
+                        }}
+                        title={autofillStates[`${index}-purpose`] ? "Clear" : "Copy from first visitor"}
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          padding: "0",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <img
+                          src={duplicateIcon}
+                          alt="Copy"
+                          style={{ width: "20px", height: "20px" }}
+                        />
+                      </button>
+                    )}
+                  </div>
 
                   <input
                     className="form-control"
@@ -445,52 +550,74 @@ export default function AdhocForm({ isMobile, setActiveForm, visitorToEdit }) {
                     </div>
                   </div>
 
-                  <label className="fw-bold mt-3">Tentative In Time</label>
-                  <input
-                    type="datetime-local"
-                    className="form-control"
-                    value={visitor.TentativeinTime}
-                    onChange={(e) =>
-                      handleChange(index, "TentativeinTime", e.target.value)
-                    }
-                    required
-                  />
-
-                  <label className="fw-bold mt-3">Tentative Out Time</label>
-                  <input
-                    type="datetime-local"
-                    className="form-control"
-                    value={visitor.TentativeoutTime}
-                    onChange={(e) =>
-                      handleChange(index, "TentativeoutTime", e.target.value)
-                    }
-                    required
-                  />
+                  <label className="fw-bold mt-3">Tentative In & Out Time</label>
+                  <div className="d-flex gap-2">
+                    <div className="d-flex gap-2 flex-grow-1">
+                      <div className="flex-grow-1">
+                        <label style={{ fontSize: "0.85rem" }} className="text-muted">In Time</label>
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          value={visitor.TentativeinTime}
+                          onChange={(e) =>
+                            handleChange(index, "TentativeinTime", e.target.value)
+                          }
+                          required
+                        />
+                      </div>
+                      <div className="flex-grow-1">
+                        <label style={{ fontSize: "0.85rem" }} className="text-muted">Out Time</label>
+                        <input
+                          type="datetime-local"
+                          className="form-control"
+                          value={visitor.TentativeoutTime}
+                          onChange={(e) =>
+                            handleChange(index, "TentativeoutTime", e.target.value)
+                          }
+                          required
+                        />
+                      </div>
+                    </div>
+                    {!visitorToEdit && visitors.length > 1 && index > 0 && (
+                      <button
+                        className={`btn ${autofillStates[`${index}-times`] ? "btn-danger" : "btn-success"}`}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const isAutofilled = autofillStates[`${index}-times`];
+                          if (isAutofilled) {
+                            handleChange(index, "TentativeinTime", "");
+                            handleChange(index, "TentativeoutTime", "");
+                          } else {
+                            handleChange(index, "TentativeinTime", visitors[0].TentativeinTime);
+                            handleChange(index, "TentativeoutTime", visitors[0].TentativeoutTime);
+                          }
+                          setAutofillStates({...autofillStates, [`${index}-times`]: !isAutofilled});
+                        }}
+                        title={autofillStates[`${index}-times`] ? "Clear times" : "Copy times from first visitor"}
+                        style={{
+                          width: "40px",
+                          height: "40px",
+                          padding: "0",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          alignSelf: "flex-end",
+                          marginBottom: "0",
+                        }}
+                      >
+                        <img
+                          src={duplicateIcon}
+                          alt="Copy"
+                          style={{ width: "20px", height: "20px" }}
+                        />
+                      </button>
+                    )}
+                  </div>
 
                   {!visitorToEdit && visitors.length > 1 && (
                     <div className="d-flex gap-2 mt-3">
-                      {index > 0 && (
-                        <button
-                          className={`btn btn-sm flex-grow-1 ${
-                            autofillEnabled[index]
-                              ? "btn-danger"
-                              : "btn-success"
-                          }`}
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (autofillEnabled[index]) {
-                              clearAutofill(index);
-                            } else {
-                              autofillFromFirst(index);
-                            }
-                          }}
-                        >
-                          {autofillEnabled[index]
-                            ? "Clear Autofill"
-                            : "Copy from first visitor"}
-                        </button>
-                      )}
                       <button
                         className="btn btn-danger btn-sm flex-grow-1"
                         type="button"
