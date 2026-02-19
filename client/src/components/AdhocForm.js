@@ -55,6 +55,7 @@ export default function AdhocForm({ isMobile, setActiveForm, visitorToEdit }) {
   const [openIndex, setOpenIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [autofillEnabled, setAutofillEnabled] = useState({});
 
   // Update submittedBy when account changes
   useEffect(() => {
@@ -128,12 +129,30 @@ export default function AdhocForm({ isMobile, setActiveForm, visitorToEdit }) {
     const updated = [...visitors];
     updated[index] = {
       ...updated[index],
+      host: firstVisitor.host,
       company: firstVisitor.company,
       purposeOfVisit: firstVisitor.purposeOfVisit,
       TentativeinTime: firstVisitor.TentativeinTime,
       TentativeoutTime: firstVisitor.TentativeoutTime,
     };
     setVisitors(updated);
+    setAutofillEnabled({ ...autofillEnabled, [index]: true });
+  };
+
+  const clearAutofill = (index) => {
+    if (index === 0) return;
+    
+    const updated = [...visitors];
+    updated[index] = {
+      ...updated[index],
+      host: "",
+      company: "",
+      purposeOfVisit: "",
+      TentativeinTime: "",
+      TentativeoutTime: "",
+    };
+    setVisitors(updated);
+    setAutofillEnabled({ ...autofillEnabled, [index]: false });
   };
 
   const validate = () => {
@@ -260,33 +279,6 @@ export default function AdhocForm({ isMobile, setActiveForm, visitorToEdit }) {
                 <FaUser className="me-2 text-primary" /> Adhoc Visitor{" "}
                 {index + 1}
               </h5>
-
-              {!visitorToEdit && visitors.length > 1 && (
-                <div className="d-flex gap-2">
-                  {index > 0 && (
-                    <button
-                      className="btn btn-outline-success btn-sm"
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        autofillFromFirst(index);
-                      }}
-                    >
-                      Autofill
-                    </button>
-                  )}
-                  <button
-                    className="btn btn-outline-danger btn-sm"
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeVisitor(index);
-                    }}
-                  >
-                    Remove
-                  </button>
-                </div>
-              )}
             </div>
 
             <AnimatePresence>
@@ -457,6 +449,43 @@ export default function AdhocForm({ isMobile, setActiveForm, visitorToEdit }) {
                     }
                     required
                   />
+
+                  {!visitorToEdit && visitors.length > 1 && (
+                    <div className="d-flex gap-2 mt-3">
+                      {index > 0 && (
+                        <button
+                          className={`btn btn-sm flex-grow-1 ${
+                            autofillEnabled[index]
+                              ? "btn-danger"
+                              : "btn-success"
+                          }`}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (autofillEnabled[index]) {
+                              clearAutofill(index);
+                            } else {
+                              autofillFromFirst(index);
+                            }
+                          }}
+                        >
+                          {autofillEnabled[index]
+                            ? "Clear Autofill"
+                            : "Copy from previous visitor"}
+                        </button>
+                      )}
+                      <button
+                        className="btn btn-danger btn-sm flex-grow-1"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeVisitor(index);
+                        }}
+                      >
+                        Delete Entry
+                      </button>
+                    </div>
+                  )}
 
                   <p className="text-muted mt-2 mb-0">
                     <small>Submitted by: {visitor.submittedBy}</small>

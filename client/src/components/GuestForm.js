@@ -71,6 +71,7 @@ export default function GuestForm({ isMobile, setActiveForm, guestToEdit }) {
   const [guests, setGuests] = useState([emptyGuest]);
   const [openIndex, setOpenIndex] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [autofillEnabled, setAutofillEnabled] = useState({});
 
   //  When account changes: update submittedBy + (only reset host if NOT onBehalfOf)
   useEffect(() => {
@@ -166,6 +167,7 @@ export default function GuestForm({ isMobile, setActiveForm, guestToEdit }) {
     const updated = [...guests];
     updated[index] = {
       ...updated[index],
+      host: firstGuest.host,
       company: firstGuest.company,
       purposeOfVisit: firstGuest.purposeOfVisit,
       proposedRefreshmentTime: firstGuest.proposedRefreshmentTime,
@@ -173,6 +175,24 @@ export default function GuestForm({ isMobile, setActiveForm, guestToEdit }) {
       TentativeoutTime: firstGuest.TentativeoutTime,
     };
     setGuests(updated);
+    setAutofillEnabled({ ...autofillEnabled, [index]: true });
+  };
+
+  const clearAutofill = (index) => {
+    if (index === 0) return;
+    
+    const updated = [...guests];
+    updated[index] = {
+      ...updated[index],
+      host: ssoHostName,
+      company: "",
+      purposeOfVisit: "",
+      proposedRefreshmentTime: "",
+      TentativeinTime: "",
+      TentativeoutTime: "",
+    };
+    setGuests(updated);
+    setAutofillEnabled({ ...autofillEnabled, [index]: false });
   };
 
   //  Host toggle exactly like visitor:
@@ -316,33 +336,6 @@ export default function GuestForm({ isMobile, setActiveForm, guestToEdit }) {
               <h5 className="fw-bold mb-0 d-flex align-items-center">
                 <FaUser className="me-2 text-primary" /> Guest {index + 1}
               </h5>
-
-              {!guestToEdit && guests.length > 1 && (
-                <div className="d-flex gap-2">
-                  {index > 0 && (
-                    <button
-                      className="btn btn-outline-success btn-sm"
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        autofillFromFirst(index);
-                      }}
-                    >
-                      Autofill
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="btn btn-outline-danger btn-sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeGuest(index);
-                    }}
-                  >
-                    Remove
-                  </button>
-                </div>
-              )}
             </div>
 
             <AnimatePresence>
@@ -545,6 +538,43 @@ export default function GuestForm({ isMobile, setActiveForm, guestToEdit }) {
                     onChange={(e) => handleChange(index, "TentativeoutTime", e.target.value)}
                     required
                   />
+
+                  {!guestToEdit && guests.length > 1 && (
+                    <div className="d-flex gap-2 mt-3">
+                      {index > 0 && (
+                        <button
+                          className={`btn btn-sm flex-grow-1 ${
+                            autofillEnabled[index]
+                              ? "btn-danger"
+                              : "btn-success"
+                          }`}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (autofillEnabled[index]) {
+                              clearAutofill(index);
+                            } else {
+                              autofillFromFirst(index);
+                            }
+                          }}
+                        >
+                          {autofillEnabled[index]
+                            ? "Clear Autofill"
+                            : "Copy from previous guest"}
+                        </button>
+                      )}
+                      <button
+                        className="btn btn-danger btn-sm flex-grow-1"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeGuest(index);
+                        }}
+                      >
+                        Delete Entry
+                      </button>
+                    </div>
+                  )}
 
                   <p className="text-muted mt-2 mb-0">
                     <small>Submitted by: {guest.submittedBy}</small>
