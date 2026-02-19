@@ -54,7 +54,6 @@ export default function VisitorForm({ isMobile, setActiveForm, visitorToEdit }) 
   const [openIndex, setOpenIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [autofillEnabled, setAutofillEnabled] = useState({});
   const [autofillStates, setAutofillStates] = useState({});
 
   // Update submittedBy + host when account changes
@@ -95,10 +94,38 @@ export default function VisitorForm({ isMobile, setActiveForm, visitorToEdit }) 
     }
   }, [visitorToEdit, ssoUserName]);
 
+  const getAutofillStateKeyForField = (field) => {
+    switch (field) {
+      case "host":
+        return "host";
+      case "company":
+        return "company";
+      case "purposeOfVisit":
+        return "purpose";
+      case "TentativeinTime":
+      case "TentativeoutTime":
+        return "times";
+      default:
+        return null;
+    }
+  };
+
   const handleChange = (index, field, value) => {
-    const updated = [...visitors];
-    updated[index][field] = value;
-    setVisitors(updated);
+    setVisitors((prevVisitors) => {
+      const updated = prevVisitors.map((v, i) =>
+        i === index ? { ...v, [field]: value } : v
+      );
+
+      if (index !== 0 || visitorToEdit) return updated;
+
+      const autofillStateKey = getAutofillStateKeyForField(field);
+      if (!autofillStateKey) return updated;
+
+      return updated.map((v, i) => {
+        if (i === 0) return v;
+        return { ...v, [field]: value };
+      });
+    });
   };
 
   const addVisitor = () => {
@@ -110,41 +137,6 @@ export default function VisitorForm({ isMobile, setActiveForm, visitorToEdit }) 
     const updated = visitors.filter((_, i) => i !== index);
     setVisitors(updated);
     setOpenIndex(0);
-  };
-
-  const autofillFromFirst = (index) => {
-    if (index === 0) return; // Can't autofill the first visitor from itself
-    
-    const firstVisitor = visitors[0];
-    const updated = [...visitors];
-    updated[index] = {
-      ...updated[index],
-      host: firstVisitor.host,
-      company: firstVisitor.company,
-      purposeOfVisit: firstVisitor.purposeOfVisit,
-      guestWifiRequired: firstVisitor.guestWifiRequired,
-      TentativeinTime: firstVisitor.TentativeinTime,
-      TentativeoutTime: firstVisitor.TentativeoutTime,
-    };
-    setVisitors(updated);
-    setAutofillEnabled({ ...autofillEnabled, [index]: true });
-  };
-
-  const clearAutofill = (index) => {
-    if (index === 0) return;
-    
-    const updated = [...visitors];
-    updated[index] = {
-      ...updated[index],
-      host: ssoUserName,
-      company: "",
-      purposeOfVisit: "",
-      guestWifiRequired: false,
-      TentativeinTime: "",
-      TentativeoutTime: "",
-    };
-    setVisitors(updated);
-    setAutofillEnabled({ ...autofillEnabled, [index]: false });
   };
 
   const validate = () => {

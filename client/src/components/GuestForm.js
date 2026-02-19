@@ -72,7 +72,6 @@ export default function GuestForm({ isMobile, setActiveForm, guestToEdit }) {
   const [guests, setGuests] = useState([emptyGuest]);
   const [openIndex, setOpenIndex] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [autofillEnabled, setAutofillEnabled] = useState({});
   const [autofillStates, setAutofillStates] = useState({});
 
   //  When account changes: update submittedBy + (only reset host if NOT onBehalfOf)
@@ -144,11 +143,39 @@ export default function GuestForm({ isMobile, setActiveForm, guestToEdit }) {
     setOpenIndex(0);
   }, [guestToEdit, ssoEmail, ssoHostName]);
 
+  const getAutofillStateKeyForField = (field) => {
+    switch (field) {
+      case "host":
+        return "host";
+      case "category":
+        return "category";
+      case "company":
+        return "company";
+      case "purposeOfVisit":
+        return "purpose";
+      case "TentativeinTime":
+      case "TentativeoutTime":
+        return "times";
+      default:
+        return null;
+    }
+  };
+
   const handleChange = (index, field, value) => {
     setGuests((prev) => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      return updated;
+      const updated = prev.map((g, i) =>
+        i === index ? { ...g, [field]: value } : g
+      );
+
+      if (index !== 0 || guestToEdit) return updated;
+
+      const autofillStateKey = getAutofillStateKeyForField(field);
+      if (!autofillStateKey) return updated;
+
+      return updated.map((g, i) => {
+        if (i === 0) return g;
+        return { ...g, [field]: value };
+      });
     });
   };
 
@@ -160,45 +187,6 @@ export default function GuestForm({ isMobile, setActiveForm, guestToEdit }) {
   const removeGuest = (index) => {
     setGuests((prev) => prev.filter((_, i) => i !== index));
     setOpenIndex(index === 0 ? 0 : index - 1);
-  };
-
-  const autofillFromFirst = (index) => {
-    if (index === 0) return; // Can't autofill the first guest from itself
-    
-    const firstGuest = guests[0];
-    const updated = [...guests];
-    updated[index] = {
-      ...updated[index],
-      host: firstGuest.host,
-      category: firstGuest.category,
-      company: firstGuest.company,
-      purposeOfVisit: firstGuest.purposeOfVisit,
-      guestWifiRequired: firstGuest.guestWifiRequired,
-      proposedRefreshmentTime: firstGuest.proposedRefreshmentTime,
-      TentativeinTime: firstGuest.TentativeinTime,
-      TentativeoutTime: firstGuest.TentativeoutTime,
-    };
-    setGuests(updated);
-    setAutofillEnabled({ ...autofillEnabled, [index]: true });
-  };
-
-  const clearAutofill = (index) => {
-    if (index === 0) return;
-    
-    const updated = [...guests];
-    updated[index] = {
-      ...updated[index],
-      host: ssoHostName,
-      category: "Isuzu Employee",
-      company: "",
-      purposeOfVisit: "",
-      guestWifiRequired: false,
-      proposedRefreshmentTime: "",
-      TentativeinTime: "",
-      TentativeoutTime: "",
-    };
-    setGuests(updated);
-    setAutofillEnabled({ ...autofillEnabled, [index]: false });
   };
 
   //  Host toggle exactly like visitor:
